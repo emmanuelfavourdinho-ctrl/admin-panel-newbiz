@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#080808">
+  <title>Admin | Newbiz Creation Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{
+      --black:#080808;--surface:#0f0f0f;--card:#141414;--card2:#1a1a1a;
+      --border:rgba(255,255,255,.07);--gold:#c9a96e;--gold2:#e8c990;
+      --white:#f5f0ea;--muted:#6b6560;--text:#d6cfc6;
+      --red:#d46060;--green:#5ebd78;--amber:#d4a040;--blue:#5eabbd;
+      --display:'Cormorant Garamond',Georgia,serif;
+      --body:'DM Sans',sans-serif;
+      --sidebar:240px;
+    }
+    html{-webkit-text-size-adjust:100%}
+    body{background:var(--black);color:var(--text);font-family:var(--body);font-size:14px;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:2px}
+
+    /* ══ LOGIN ══ */
+    #loginScreen{position:fixed;inset:0;background:var(--black);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+    .login-box{background:var(--surface);border:1px solid var(--border);padding:clamp(32px,6vw,56px) clamp(24px,5vw,52px);max-width:400px;width:100%;text-align:center;position:relative}
+    .login-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+    .login-logo{font-family:var(--display);font-size:1.15rem;letter-spacing:.15em;color:var(--white);text-transform:uppercase;margin-bottom:4px}
+    .login-sub{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:32px}
+    .login-box input{width:100%;padding:16px;background:var(--card);border:1px solid var(--border);color:var(--white);font-family:var(--body);margin-bottom:14px;outline:none;border-radius:2px;letter-spacing:.2em;text-align:center;font-size:1.3rem;min-height:52px;-webkit-appearance:none}
+    .login-box input:focus{border-color:rgba(201,169,110,.5)}
+    .login-btn{width:100%;padding:15px;background:var(--gold);color:var(--black);font-family:var(--body);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;border:none;cursor:pointer;border-radius:2px;transition:background .25s;min-height:48px}
+    .login-btn:hover{background:var(--gold2)}
+    .login-err{font-size:12px;color:var(--red);margin-top:10px;min-height:18px}
+
+    /* ══ APP LAYOUT ══ */
+    #app{display:none;min-height:100vh}
+
+    /* ══ SIDEBAR ══ */
+    .sidebar{
+      width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;
+      transition:transform .3s ease;
+    }
+    .sb-logo{padding:22px 20px 18px;border-bottom:1px solid var(--border)}
+    .sb-logo .name{font-family:var(--display);font-size:.95rem;letter-spacing:.1em;color:var(--white);text-transform:uppercase}
+    .sb-logo .name span{color:var(--gold)}
+    .sb-logo .tag{font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+    .sb-nav{flex:1;padding:12px 0;overflow-y:auto}
+    .sb-section{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);padding:14px 20px 6px}
+    .sb-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;color:var(--muted);font-size:13px;letter-spacing:.02em;transition:background .2s,color .2s;position:relative;min-height:44px}
+    .sb-item:hover{background:rgba(255,255,255,.03);color:var(--white)}
+    .sb-item.active{color:var(--gold);background:rgba(201,169,110,.06)}
+    .sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--gold)}
+    .sb-item .ico{font-size:1rem;flex-shrink:0;width:20px;text-align:center}
+    .sb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;padding:2px 6px;border-radius:10px;font-weight:500}
+    .sb-bottom{padding:16px 20px;border-top:1px solid var(--border)}
+    .logout-btn{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);cursor:pointer;letter-spacing:.05em;background:none;border:none;font-family:var(--body);width:100%;transition:color .2s;min-height:44px}
+    .logout-btn:hover{color:var(--red)}
+
+    /* ══ MAIN ══ */
+    .main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh}
+    .topbar{
+      height:clamp(54px,8vw,64px);border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 clamp(16px,3vw,36px);
+      background:rgba(8,8,8,.85);backdrop-filter:blur(12px);
+      position:sticky;top:0;z-index:50;
+    }
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .topbar-title{font-family:var(--display);font-size:clamp(1.1rem,2.5vw,1.4rem);font-weight:300;color:var(--white)}
+    .topbar-title em{font-style:italic;color:var(--gold)}
+    .topbar-right{display:flex;align-items:center;gap:12px}
+    .topbar-date{font-size:11px;letter-spacing:.1em;color:var(--muted)}
+    .view-site-btn{font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(201,169,110,.3);padding:7px 14px;text-decoration:none;border-radius:2px;transition:background .25s,color .25s;white-space:nowrap;min-height:36px;display:flex;align-items:center}
+    .view-site-btn:hover{background:var(--gold);color:var(--black)}
+
+    /* Mobile sidebar toggle */
+    .mob-sidebar-btn{display:none;width:36px;height:36px;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:1.2rem;background:none;border:none;flex-shrink:0}
+
+    /* Sidebar overlay (mobile) */
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99}
+
+    .content{flex:1;padding:clamp(20px,3vw,36px);overflow-y:auto}
+
+    /* ══ PANELS ══ */
+    .panel{display:none}
+    .panel.active{display:block}
+
+    /* ══ STAT CARDS ══ */
+    .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:28px}
+    .stat-box{background:var(--card);padding:clamp(16px,2.5vw,24px) clamp(14px,2vw,22px)}
+    .stat-box .s-num{font-family:var(--display);font-size:clamp(1.8rem,3.5vw,2.6rem);font-weight:300;color:var(--white);line-height:1;margin-bottom:4px}
+    .stat-box .s-num.gold{color:var(--gold)}.stat-box .s-num.green{color:var(--green)}.stat-box .s-num.amber{color:var(--amber)}.stat-box .s-num.red{color:var(--red)}
+    .stat-box .s-lbl{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+
+    /* ══ SEC HEADER ══ */
+    .sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+    .sec-title{font-family:var(--display);font-size:clamp(1.2rem,2.5vw,1.5rem);font-weight:300;color:var(--white)}
+    .sec-title em{font-style:italic;color:var(--gold)}
+
+    /* ══ TABLE ══ */
+    .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .bookings-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);min-width:560px}
+    .bookings-table th{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface);font-weight:400;white-space:nowrap}
+    .bookings-table td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:12.5px;color:var(--text);vertical-align:middle}
+    .bookings-table tr:last-child td{border-bottom:none}
+    .bookings-table tr:hover td{background:rgba(255,255,255,.02)}
+    .client-name{color:var(--white);font-weight:500}
+
+    /* Status */
+    .status-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;letter-spacing:.1em;padding:4px 9px;border-radius:1px;font-weight:500;white-space:nowrap}
+    .status-badge.pending{background:rgba(212,160,64,.12);color:var(--amber);border:1px solid rgba(212,160,64,.25)}
+    .status-badge.confirmed{background:rgba(94,189,120,.12);color:var(--green);border:1px solid rgba(94,189,120,.25)}
+    .status-badge.completed{background:rgba(94,171,189,.12);color:var(--blue);border:1px solid rgba(94,171,189,.25)}
+    .status-badge.cancelled{background:rgba(212,96,96,.12);color:var(--red);border:1px solid rgba(212,96,96,.25)}
+
+    /* Action buttons */
+    .action-row{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+    .act-btn{font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:5px 9px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--body);border-radius:1px;transition:all .2s;white-space:nowrap;min-height:32px}
+    .act-btn.confirm{color:var(--green);border-color:rgba(94,189,120,.3)}.act-btn.confirm:hover{background:rgba(94,189,120,.1)}
+    .act-btn.complete{color:var(--blue);border-color:rgba(94,171,189,.3)}.act-btn.complete:hover{background:rgba(94,171,189,.1)}
+    .act-btn.cancel{color:var(--red);border-color:rgba(212,96,96,.3)}.act-btn.cancel:hover{background:rgba(212,96,96,.1)}
+    .act-btn.del{color:var(--muted)}.act-btn.del:hover{color:var(--red)}
+
+    /* Filter tabs */
+    .tab-row{display:flex;gap:4px;margin-bottom:18px;flex-wrap:wrap}
+    .tab-btn{padding:8px 16px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:transparent;border:1px solid var(--border);cursor:pointer;font-family:var(--body);border-radius:2px;transition:all .2s;min-height:38px}
+    .tab-btn.on{background:var(--gold);color:var(--black);border-color:var(--gold)}
+    .tab-btn:hover:not(.on){color:var(--white);border-color:rgba(255,255,255,.2)}
+
+    /* Empty state */
+    .empty-state{text-align:center;padding:clamp(40px,6vw,80px) 20px;font-family:var(--display);font-size:clamp(1.4rem,3vw,1.8rem);font-weight:300;color:var(--muted)}
+    .empty-state p{font-family:var(--body);font-size:13px;color:var(--muted);margin-top:8px}
+
+    /* ══ SERVICES GRID ══ */
+    .services-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:1px;background:var(--border);border:1px solid var(--border)}
+    .svc-admin-card{background:var(--card);display:flex;flex-direction:column}
+    .svc-admin-photo{height:clamp(140px,20vw,180px);background:#0d0d0d;position:relative;overflow:hidden;border-bottom:1px solid var(--border);flex-shrink:0}
+    .svc-admin-photo img{width:100%;height:100%;object-fit:cover;filter:brightness(.8);display:block}
+    .svc-admin-photo .no-img{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px}
+    .svc-admin-photo .no-img span:first-child{font-size:2rem;opacity:.2}
+    .svc-admin-photo .no-img span:last-child{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);opacity:.4}
+    .svc-admin-body{padding:clamp(14px,2vw,20px);flex:1;display:flex;flex-direction:column}
+    .svc-admin-name{font-family:var(--display);font-size:1.05rem;font-weight:400;color:var(--white);margin-bottom:4px}
+    .svc-admin-price{font-family:var(--display);font-size:1.3rem;font-weight:300;color:var(--gold);margin-bottom:10px}
+    .svc-photo-count{font-size:11px;color:var(--muted);margin-bottom:12px}
+    .svc-photo-count span{color:var(--gold)}
+    .upload-zone{border:1px dashed rgba(201,169,110,.25);border-radius:2px;padding:14px;text-align:center;cursor:pointer;transition:border-color .25s,background .25s;position:relative;overflow:hidden;min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .upload-zone:hover{border-color:var(--gold);background:rgba(201,169,110,.03)}
+    .upload-zone:active{background:rgba(201,169,110,.06)}
+    .upload-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
+    .upload-zone .uz-text{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    .upload-zone .uz-icon{font-size:1.2rem;margin-bottom:4px;display:block}
+    .svc-thumb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:10px}
+    .svc-thumb-wrap{position:relative;aspect-ratio:1;overflow:hidden;background:#0a0a0a}
+    .svc-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+    .svc-thumb-del{position:absolute;top:3px;right:3px;width:20px;height:20px;background:rgba(0,0,0,.8);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.7rem;border-radius:1px;opacity:0;transition:opacity .2s}
+    .svc-thumb-wrap:hover .svc-thumb-del,.svc-thumb-wrap:focus-within .svc-thumb-del{opacity:1}
+    /* On touch, always show delete button */
+    @media(hover:none){.svc-thumb-del{opacity:1}}
+
+    /* ══ GALLERY ══ */
+    .gallery-upload-bar{display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--border);padding:clamp(14px,2.5vw,20px) clamp(16px,3vw,24px);margin-bottom:20px;flex-wrap:wrap}
+    .gallery-upload-bar .gu-label{font-size:12px;color:var(--muted);flex:1;min-width:200px}
+    .gu-btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--gold);color:var(--black);font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-family:var(--body);font-weight:500;border:none;cursor:pointer;border-radius:2px;flex-shrink:0;min-height:44px}
+    .gu-btn input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
+    .gallery-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,160px),1fr));gap:4px}
+    .gallery-admin-item{position:relative;aspect-ratio:.85;overflow:hidden;background:#0d0d0d}
+    .gallery-admin-item img{width:100%;height:100%;object-fit:cover;filter:brightness(.75);display:block;transition:filter .3s}
+    .gallery-admin-item:hover img{filter:brightness(1)}
+    .gallery-admin-del{position:absolute;top:8px;right:8px;width:30px;height:30px;background:rgba(0,0,0,.8);border:1px solid rgba(212,96,96,.4);color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem;border-radius:1px}
+    /* Always show on touch */
+    @media(hover:none){.gallery-admin-del{opacity:1!important}}
+    @media(hover:hover){.gallery-admin-del{opacity:0;transition:opacity .2s}.gallery-admin-item:hover .gallery-admin-del{opacity:1}}
+
+    /* ══ SETTINGS ══ */
+    .settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:20px}
+    .settings-card{background:var(--card);border:1px solid var(--border);padding:clamp(20px,3vw,28px)}
+    .settings-card h3{font-family:var(--display);font-size:1.15rem;font-weight:400;color:var(--white);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+    .settings-card h3 em{font-style:italic;color:var(--gold)}
+    .settings-save-btn{display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:12px 24px;background:var(--gold);color:var(--black);font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-family:var(--body);font-weight:500;border:none;cursor:pointer;border-radius:2px;transition:background .25s;min-height:44px}
+    .settings-save-btn:hover{background:var(--gold2)}
+    .save-ok{font-size:11.5px;color:var(--green);margin-left:12px;opacity:0;transition:opacity .3s}
+    .save-ok.show{opacity:1}
+
+    /* ══ FORM ══ */
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:12px 14px;background:var(--card2);border:1px solid var(--border);color:var(--white);font-family:var(--body);font-size:14px;outline:none;border-radius:2px;transition:border-color .25s;-webkit-appearance:none;min-height:46px}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:rgba(201,169,110,.4)}
+    .form-group select option{background:var(--card2)}
+    .login-err-inline{font-size:11.5px;color:var(--red);margin-top:6px}
+
+    /* ══ RESPONSIVE ══ */
+    @media(max-width:900px){
+      :root{--sidebar:0px}
+      .sidebar{
+        transform:translateX(-100%);
+        width:min(280px,85vw);
+        box-shadow:4px 0 20px rgba(0,0,0,.5);
+      }
+      .sidebar.open{transform:translateX(0)}
+      .sidebar-overlay.open{display:block}
+      .main{margin-left:0}
+      .mob-sidebar-btn{display:flex}
+      .topbar-date{display:none}
+    }
+
+    @media(max-width:640px){
+      .stat-row{grid-template-columns:repeat(3,1fr)}
+      .tab-row{gap:3px}
+      .tab-btn{padding:7px 10px;font-size:9.5px;letter-spacing:.08em}
+      .content{padding:16px}
+    }
+
+    @media(max-width:400px){
+      .stat-row{grid-template-columns:repeat(2,1fr)}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">Newbiz <span style="color:var(--gold)">Creation</span> Studio</div>
+    <div class="login-sub">Admin Dashboard</div>
+    <input type="password" id="pinInput" placeholder="· · · ·" maxlength="8" inputmode="numeric"
+        oninput="if(this.value.length>=4&&this.value.length<=8)checkPin()"
+          onkeydown="if(event.key==='Enter')checkPin()">
+    <button class="login-btn" onclick="checkPin()">Enter Dashboard</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="name">Newbiz <span>Studio</span></div>
+      <div class="tag">Admin Panel</div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">Overview</div>
+      <div class="sb-item active" data-panel="dashboard" onclick="goPanel(this)"><span class="ico">📊</span>Dashboard</div>
+      <div class="sb-section">Manage</div>
+      <div class="sb-item" data-panel="bookings" onclick="goPanel(this)"><span class="ico">📅</span>Bookings<span class="sb-badge" id="pendingBadge" style="display:none">0</span></div>
+      <div class="sb-item" data-panel="services" onclick="goPanel(this)"><span class="ico">✂️</span>Services &amp; Photos</div>
+      <div class="sb-item" data-panel="gallery" onclick="goPanel(this)"><span class="ico">🖼️</span>Gallery</div>
+      <div class="sb-section">System</div>
+      <div class="sb-item" data-panel="settings" onclick="goPanel(this)"><span class="ico">⚙️</span>Settings</div>
+    </nav>
+    <div class="sb-bottom">
+      <button class="logout-btn" onclick="logout()">⇠ &nbsp;Logout</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="mob-sidebar-btn" onclick="openSidebar()" aria-label="Open menu">☰</button>
+        <div class="topbar-title" id="topbarTitle">Dashboard <em>Overview</em></div>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-date" id="topbarDate"></span>
+        <a href="index.html" target="_blank" class="view-site-btn">View Site ↗</a>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- DASHBOARD -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="stat-row" id="statRow"></div>
+        <div class="sec-header">
+          <div class="sec-title">Latest <em>Bookings</em></div>
+        </div>
+        <div class="table-wrap" id="dashRecentTable"></div>
+      </div>
+
+      <!-- BOOKINGS -->
+      <div class="panel" id="panel-bookings">
+        <div class="tab-row" id="bookingTabRow">
+          <button class="tab-btn on" data-filter="all" onclick="filterBookings(this)">All</button>
+          <button class="tab-btn" data-filter="pending" onclick="filterBookings(this)">Pending</button>
+          <button class="tab-btn" data-filter="confirmed" onclick="filterBookings(this)">Confirmed</button>
+          <button class="tab-btn" data-filter="completed" onclick="filterBookings(this)">Done</button>
+          <button class="tab-btn" data-filter="cancelled" onclick="filterBookings(this)">Cancelled</button>
+        </div>
+        <div class="table-wrap" id="bookingsTableWrap"></div>
+      </div>
+
+      <!-- SERVICES -->
+      <div class="panel" id="panel-services">
+        <div class="sec-header" style="margin-bottom:20px">
+          <div class="sec-title">Services <em>&amp; Photos</em></div>
+          <div style="font-size:12px;color:var(--muted)">Upload photos — clients see them on the service page.</div>
+        </div>
+        <div class="services-admin-grid" id="servicesAdminGrid"></div>
+      </div>
+
+      <!-- GALLERY -->
+      <div class="panel" id="panel-gallery">
+        <div class="gallery-upload-bar">
+          <div class="gu-label">Upload photos to the public gallery page.</div>
+          <label class="gu-btn">📷 Upload<input type="file" accept="image/*" multiple onchange="uploadGallery(event)"></label>
+        </div>
+        <div class="gallery-admin-grid" id="galleryAdminGrid"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="panel" id="panel-settings">
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>Studio <em>Info</em></h3>
+            <div class="form-group"><label>Studio Name</label><input id="s_name" type="text"></div>
+            <div class="form-group"><label>Phone</label><input id="s_phone" type="tel"></div>
+            <div class="form-group"><label>Email</label><input id="s_email" type="email"></div>
+            <div class="form-group"><label>Location</label><input id="s_loc" type="text"></div>
+            <button class="settings-save-btn" onclick="saveSettings()">Save Changes</button>
+            <span class="save-ok" id="settingsSavedMsg">✓ Saved</span>
+          </div>
+          <div class="settings-card">
+            <h3>Admin <em>PIN</em></h3>
+            <div class="form-group"><label>Current PIN</label><input id="s_oldPin" type="password" maxlength="8" inputmode="numeric"></div>
+            <div class="form-group"><label>New PIN (4–8 digits)</label><input id="s_newPin" type="password" maxlength="8" inputmode="numeric"></div>
+            <div class="form-group"><label>Confirm New PIN</label><input id="s_confPin" type="password" maxlength="8" inputmode="numeric"></div>
+            <button class="settings-save-btn" onclick="changePin()">Update PIN</button>
+            <span class="save-ok" id="pinSavedMsg">✓ PIN Updated</span>
+            <div class="login-err-inline" id="pinErr"></div>
+          </div>
+          <div class="settings-card">
+            <h3>Data <em>Tools</em></h3>
+            <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:18px">Export bookings or clear old data.</p>
+            <button class="settings-save-btn" onclick="exportData()">📥 Export Bookings JSON</button>
+            <br><br>
+            <button class="settings-save-btn" style="background:rgba(212,96,96,.15);color:var(--red);border:1px solid rgba(212,96,96,.3)" onclick="clearCompleted()">🗑 Clear Completed</button>
+          </div>
+          <div class="settings-card">
+            <h3>Quick <em>Stats</em></h3>
+            <div id="settingsStats"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="security.js"></script>
+<script src="db.js"></script>
+<script>
+// ── Sidebar mobile ──
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── Auth ──
+function checkPin() {
+  const pin = document.getElementById('pinInput').value;
+  const rl = Security.rateLimit.adminLogin();
+  if (!rl.allowed) {
+    document.getElementById('loginErr').textContent = `Too many attempts. Wait ${rl.retryAfter}s.`;
+    return;
+  }
+  const settings = DB.getSettings();
+  if (pin === settings.adminPin) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initApp();
+  } else {
+    document.getElementById('loginErr').textContent = 'Incorrect PIN. Try again.';
+    document.getElementById('pinInput').value = '';
+    setTimeout(() => document.getElementById('loginErr').textContent = '', 2000);
+  }
+}
+function logout() {
+  closeSidebar();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('pinInput').value = '';
+}
+
+// ── Init ──
+function initApp() {
+  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  renderDashboard(); renderBookingsTable('all');
+  renderServicesAdmin(); renderGallery(); loadSettings(); updatePendingBadge();
+}
+
+// ── Nav ──
+const TITLES = {
+  dashboard:'Dashboard <em>Overview</em>',bookings:'Manage <em>Bookings</em>',
+  services:'Services <em>&amp; Photos</em>',gallery:'Gallery <em>Manager</em>',settings:'Studio <em>Settings</em>'
+};
+function goPanel(el) {
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  const id = el.dataset.panel;
+  document.getElementById('panel-'+id).classList.add('active');
+  document.getElementById('topbarTitle').innerHTML = TITLES[id];
+  closeSidebar();
+}
+
+// ── Dashboard ──
+function renderDashboard() {
+  const s = DB.getBookingStats();
+  document.getElementById('statRow').innerHTML = `
+    <div class="stat-box"><div class="s-num gold">${s.total}</div><div class="s-lbl">Total</div></div>
+    <div class="stat-box"><div class="s-num amber">${s.pending}</div><div class="s-lbl">Pending</div></div>
+    <div class="stat-box"><div class="s-num green">${s.confirmed}</div><div class="s-lbl">Confirmed</div></div>
+    <div class="stat-box"><div class="s-num">${s.completed}</div><div class="s-lbl">Done</div></div>
+    <div class="stat-box"><div class="s-num red">${s.cancelled}</div><div class="s-lbl">Cancelled</div></div>
+    <div class="stat-box"><div class="s-num gold">${s.today}</div><div class="s-lbl">Today</div></div>`;
+  const recent = DB.getBookings().slice(0,5);
+  document.getElementById('dashRecentTable').innerHTML = recent.length ? buildTable(recent,false) :
+    '<div class="empty-state">No bookings yet<p>They appear here when submitted.</p></div>';
+}
+
+// ── Bookings ──
+let currentFilter='all';
+function renderBookingsTable(filter) {
+  currentFilter = filter;
+  const all = DB.getBookings();
+  const shown = filter==='all' ? all : all.filter(b=>b.status===filter);
+  document.getElementById('bookingsTableWrap').innerHTML = shown.length ? buildTable(shown,true) :
+    `<div class="empty-state">No ${filter==='all'?'':filter} bookings<p>They appear here when submitted.</p></div>`;
+}
+function filterBookings(btn) {
+  document.querySelectorAll('#bookingTabRow .tab-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderBookingsTable(btn.dataset.filter);
+}
+function buildTable(bookings, full=false) {
+  const rows = bookings.map(b => {
+    const d = b.preferredDate ? new Date(b.preferredDate+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : '—';
+    const t = b.preferredTime || '—';
+    const created = new Date(b.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    return `<tr>
+      <td><div class="client-name">${esc(b.clientName)}</div><div style="font-size:11px;color:var(--muted)">${esc(b.phone)}</div></td>
+      <td style="font-size:12px;max-width:180px">${esc(b.service)}</td>
+      <td style="font-size:12px;color:var(--muted);white-space:nowrap">${d} ${t}</td>
+      ${full?`<td><div class="status-badge ${b.status}">${b.status}</div></td>
+      <td><div class="action-row">
+        ${b.status==='pending'?`<button class="act-btn confirm" onclick="updateStatus('${b.id}','confirmed')">✓ Confirm</button>`:''}
+        ${b.status!=='completed'&&b.status!=='cancelled'?`<button class="act-btn complete" onclick="updateStatus('${b.id}','completed')">Done</button>`:''}
+        ${b.status!=='cancelled'?`<button class="act-btn cancel" onclick="updateStatus('${b.id}','cancelled')">✕</button>`:''}
+        <button class="act-btn del" onclick="delBooking('${b.id}')">🗑</button>
+      </div></td>`:
+      `<td><div class="status-badge ${b.status}">${b.status}</div></td>
+       <td style="font-size:11px;color:var(--muted)">${created}</td>`}
+    </tr>`;
+  }).join('');
+  return `<table class="bookings-table">
+    <thead><tr>
+      <th>Client</th><th>Service</th><th>Date/Time</th>
+      ${full?'<th>Status</th><th>Actions</th>':'<th>Status</th><th>Received</th>'}
+    </tr></thead><tbody>${rows}</tbody></table>`;
+}
+function updateStatus(id,status) { DB.updateBookingStatus(id,status); renderBookingsTable(currentFilter); renderDashboard(); updatePendingBadge(); }
+function delBooking(id) { if(!confirm('Delete this booking?'))return; DB.deleteBooking(id); renderBookingsTable(currentFilter); renderDashboard(); updatePendingBadge(); }
+function updatePendingBadge() {
+  const n = DB.getBookingStats().pending;
+  const el = document.getElementById('pendingBadge');
+  el.textContent = n; el.style.display = n>0?'inline':'none';
+}
+
+// ── Services ──
+function renderServicesAdmin() {
+  const grid = document.getElementById('servicesAdminGrid');
+  grid.innerHTML = '';
+  DB.getServices().forEach(svc => {
+    const card = document.createElement('div');
+    card.className = 'svc-admin-card';
+    card.id = 'svc-admin-'+svc.id;
+    card.innerHTML = buildSvcAdminCard(svc);
+    grid.appendChild(card);
+  });
+}
+function buildSvcAdminCard(svc) {
+  const mainPhoto = svc.photos&&svc.photos.length ? svc.photos[0] : null;
+  const thumbs = svc.photos&&svc.photos.length ?
+    `<div class="svc-thumb-grid">${svc.photos.map((p,i)=>
+      `<div class="svc-thumb-wrap"><img src="${p}" loading="lazy"><button class="svc-thumb-del" onclick="removePhoto('${svc.id}',${i})" aria-label="Remove photo">✕</button></div>`
+    ).join('')}</div>` : '';
+  return `
+    <div class="svc-admin-photo">
+      ${mainPhoto?`<img src="${mainPhoto}" alt="${esc(svc.name)}" loading="lazy">`:
+        `<div class="no-img"><span>📷</span><span>No photo yet</span></div>`}
+    </div>
+    <div class="svc-admin-body">
+      <div class="svc-admin-name">${esc(svc.name)}</div>
+      <div class="svc-admin-price">$${svc.price}</div>
+      <div class="svc-photo-count">Photos: <span>${svc.photos?svc.photos.length:0}</span></div>
+      ${thumbs}
+      <label class="upload-zone">
+        <input type="file" accept="image/*" multiple onchange="uploadServicePhotos('${svc.id}',event)">
+        <span class="uz-icon">+</span>
+        <span class="uz-text">Add Photos</span>
+      </label>
+    </div>`;
+}
+function uploadServicePhotos(svcId,event) {
+  const files = Array.from(event.target.files);
+  if(!files.length) return;
+  const svc = DB.getServiceById(svcId);
+  const existing = svc.photos||[];
+  let loaded=0; const newPhotos=[];
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      newPhotos.push(e.target.result); loaded++;
+      if(loaded===files.length) {
+        const updated = DB.updateServicePhotos(svcId,[...existing,...newPhotos]);
+        const card = document.getElementById('svc-admin-'+svcId);
+        if(card) card.innerHTML = buildSvcAdminCard(updated);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function removePhoto(svcId,idx) {
+  const svc = DB.getServiceById(svcId);
+  const photos = [...(svc.photos||[])];
+  photos.splice(idx,1);
+  const updated = DB.updateServicePhotos(svcId,photos);
+  const card = document.getElementById('svc-admin-'+svcId);
+  if(card) card.innerHTML = buildSvcAdminCard(updated);
+}
+
+// ── Gallery ──
+function renderGallery() {
+  const items = DB.getGallery();
+  const grid = document.getElementById('galleryAdminGrid');
+  if(!items.length) { grid.innerHTML='<div class="empty-state" style="grid-column:1/-1">No photos yet<p>Upload images above.</p></div>'; return; }
+  grid.innerHTML = items.map(item=>`
+    <div class="gallery-admin-item">
+      <img src="${item.src}" loading="lazy">
+      <button class="gallery-admin-del" onclick="deleteGalleryItem('${item.id}')" aria-label="Delete photo">✕</button>
+    </div>`).join('');
+}
+function uploadGallery(event) {
+  const files = Array.from(event.target.files);
+  let loaded=0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => { DB.addGalleryItem({src:e.target.result}); loaded++; if(loaded===files.length) renderGallery(); };
+    reader.readAsDataURL(file);
+  });
+  event.target.value='';
+}
+function deleteGalleryItem(id) { if(!confirm('Remove this photo?'))return; DB.deleteGalleryItem(id); renderGallery(); }
+
+// ── Settings ──
+function loadSettings() {
+  const s = DB.getSettings();
+  document.getElementById('s_name').value=s.studioName||'';
+  document.getElementById('s_phone').value=s.phone||'';
+  document.getElementById('s_email').value=s.email||'';
+  document.getElementById('s_loc').value=s.location||'';
+  const stats = DB.getBookingStats();
+  document.getElementById('settingsStats').innerHTML = [
+    ['Total Bookings',stats.total,'var(--gold)'],
+    ['Pending',stats.pending,'var(--amber)'],
+    ['Confirmed',stats.confirmed,'var(--green)'],
+    ['Services',DB.getServices().length,'var(--blue)'],
+    ['Gallery Photos',DB.getGallery().length,'var(--muted)'],
+  ].map(([lbl,val,col])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--muted)">${lbl}</span><strong style="font-family:var(--display);font-size:1.3rem;font-weight:300;color:${col}">${val}</strong></div>`).join('');
+}
+function saveSettings() {
+  DB.updateSettings({
+    studioName:document.getElementById('s_name').value.trim(),
+    phone:document.getElementById('s_phone').value.trim(),
+    email:document.getElementById('s_email').value.trim(),
+    location:document.getElementById('s_loc').value.trim(),
+  });
+  const msg=document.getElementById('settingsSavedMsg');
+  msg.classList.add('show'); setTimeout(()=>msg.classList.remove('show'),2000);
+}
+function changePin() {
+  const oldPin=document.getElementById('s_oldPin').value;
+  const newPin=document.getElementById('s_newPin').value;
+  const confPin=document.getElementById('s_confPin').value;
+  const err=document.getElementById('pinErr');
+  const settings=DB.getSettings();
+  err.textContent='';
+  if(oldPin!==settings.adminPin){err.textContent='Current PIN incorrect.';return;}
+  if(!/^\d{4,8}$/.test(newPin)){err.textContent='New PIN must be 4–8 digits.';return;}
+  if(newPin!==confPin){err.textContent='PINs do not match.';return;}
+  DB.updateSettings({adminPin:newPin});
+  document.getElementById('s_oldPin').value='';
+  document.getElementById('s_newPin').value='';
+  document.getElementById('s_confPin').value='';
+  const msg=document.getElementById('pinSavedMsg');
+  msg.classList.add('show'); setTimeout(()=>msg.classList.remove('show'),2000);
+}
+function exportData() {
+  const data={bookings:DB.getBookings(),exported:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`newbiz-bookings-${Date.now()}.json`;
+  a.click();
+}
+function clearCompleted() {
+  if(!confirm('Delete all completed bookings?'))return;
+  DB.getBookings().filter(b=>b.status==='completed').forEach(b=>DB.deleteBooking(b.id));
+  renderBookingsTable(currentFilter); renderDashboard(); loadSettings();
+}
+
+function esc(str) { return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
